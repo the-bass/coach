@@ -1,4 +1,3 @@
-
 # Coach
 
 A package for training your *PyTorch* network until the desired target was reached.
