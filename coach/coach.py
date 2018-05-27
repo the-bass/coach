@@ -40,8 +40,8 @@ class Coach:
         self.__log__(
             f"CHECKPOINT RESTORED | "
             f"Checkpoint ID: {loaded_checkpoint.id}, "
-            f"Success on TRAIN set: {loaded_checkpoint.train_set_performance:.10f}, "
-            f"Success on DEV set: {loaded_checkpoint.dev_set_performance:.10f} | "
+            f"Success on TRAIN set: {loaded_checkpoint.train_set_performance}, "
+            f"Success on DEV set: {loaded_checkpoint.dev_set_performance} | "
             f"{loaded_checkpoint.created_at:%H:%M:%S, %d.%m.%Y}"
         )
 
@@ -66,8 +66,8 @@ class Coach:
 
         self.__log__(
             'CHECKPOINT | '
-            f"Success on TRAIN set: {train_set_performance:.10f}, "
-            f"Success on DEV set: {dev_set_performance:.10f} | "
+            f"Success on TRAIN set: {train_set_performance}, "
+            f"Success on DEV set: {dev_set_performance} | "
             f"{created_at:%H:%M:%S, %d.%m.%Y}"
         )
 

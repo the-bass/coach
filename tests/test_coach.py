@@ -23,7 +23,7 @@ class TestCoach(unittest.TestCase):
             return self.loss
 
         def measure_performance():
-            return 5.2, 6.1
+            return 5.2, '5|3|1|4'
 
         network = SimpleFC(name='simple_fc', directory=self.test_dir)
         cch = coach.Coach(network=network)
@@ -41,7 +41,7 @@ class TestCoach(unittest.TestCase):
         self.assertEqual(created_checkpoint.id, 0)
         self.assertEqual(created_checkpoint.notes, 'LR=0.001')
         self.assertEqual(created_checkpoint.train_set_performance, 5.2)
-        self.assertEqual(created_checkpoint.dev_set_performance, 6.1)
+        self.assertEqual(created_checkpoint.dev_set_performance, '5|3|1|4')
         self.assertEqual(created_checkpoint.losses_since_last_checkpoint, [0.9, 0.8, 0.7000000000000001])
 
 if __name__ == '__main__':
