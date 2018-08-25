@@ -3,6 +3,7 @@ import time
 
 from torch_state_control import StateManager
 from .aux import minutes_since, seconds_since
+from .checkpoint_creator import CheckpointCreator
 
 
 class Coach:
@@ -23,58 +24,15 @@ class Coach:
             '                                                   '
         )
 
-    def __load_checkpoint__(self, checkpoint):
-        if checkpoint == None:
-            return
+    def train(self, target, train_one_epoch, measure_performance, checkpoint_frequency, checkpoint=None, settings_notes=None, record=True):
+        checkpoint_creator = CheckpointCreator(
+            network=self.network,
+            measure_performance=measure_performance,
+            settings_notes=settings_notes,
+            record=record,
+            logger=self.__log__)
 
-        if checkpoint == -1:
-            self.network.load_latest_checkpoint()
-        else:
-            self.network.load_checkpoint(checkpoint)
-
-        # Log information about the loaded checkpoint.
-        loaded_checkpoint = self.network.latest_checkpoint()
-        if not loaded_checkpoint:
-            return
-
-        self.__log__(
-            f"CHECKPOINT RESTORED | "
-            f"Checkpoint ID: {loaded_checkpoint.id}, "
-            f"Success on TRAIN set: {loaded_checkpoint.train_set_performance}, "
-            f"Success on DEV set: {loaded_checkpoint.dev_set_performance} | "
-            f"{loaded_checkpoint.created_at:%H:%M:%S, %d.%m.%Y}"
-        )
-
-    def __create_checkpoint__(self, measure_performance, notes, epochs_since_last_checkpoint, losses_since_last_checkpoint, record):
-        self.__log__(
-            'CHECKPOINT | '
-            f"Measuring performance on train and dev sets ...",
-            end="\r"
-        )
-
-        train_set_performance, dev_set_performance = measure_performance()
-
-        if record:
-            self.network.save_checkpoint(
-                notes=notes,
-                train_set_performance=train_set_performance,
-                dev_set_performance=dev_set_performance,
-                losses_since_last_checkpoint=losses_since_last_checkpoint
-            )
-
-        created_at = datetime.datetime.now()
-
-        self.__log__(
-            'CHECKPOINT | '
-            f"Success on TRAIN set: {train_set_performance}, "
-            f"Success on DEV set: {dev_set_performance} | "
-            f"{created_at:%H:%M:%S, %d.%m.%Y}"
-        )
-
-        return created_at
-
-    def train(self, target, train_one_epoch, measure_performance, checkpoint_frequency, checkpoint=None, notes=None, record=True):
-        self.__load_checkpoint__(checkpoint)
+        checkpoint_creator.load_checkpoint(checkpoint)
 
         training_started_at = time.time()
         last_checkpoint_at = datetime.datetime.now()
@@ -111,10 +69,14 @@ class Coach:
 
             if minutes_since_last_checkpoint >= checkpoint_frequency:
                 self.__log_epoch_summary__(epoch, loss, seconds_elapsed)
-                last_checkpoint_at = self.__create_checkpoint__(measure_performance, notes, epochs_since_last_checkpoint, losses_since_last_checkpoint, record)
+                last_checkpoint_at = checkpoint_creator.create_checkpoint(
+                    epochs_since_last_checkpoint,
+                    losses_since_last_checkpoint)
                 losses_since_last_checkpoint = []
                 epochs_since_last_checkpoint = 0
 
         self.__log_epoch_summary__(epoch, loss, seconds_elapsed)
-        self.__create_checkpoint__(measure_performance, notes, epochs_since_last_checkpoint, losses_since_last_checkpoint, record)
+        checkpoint_creator.create_checkpoint(
+            epochs_since_last_checkpoint,
+            losses_since_last_checkpoint)
         self.__log__("Training target reached - training ends")
